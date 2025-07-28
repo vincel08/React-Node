@@ -12,7 +12,7 @@ export const App = () => {
    */
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/api/todos`)
+      .get(`${import.meta.env.VITE_API_URL}/todos`)
       .then((res) => {
         setTodos(res.data);
       })
@@ -25,14 +25,10 @@ export const App = () => {
   const hanldleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/todos`,
-        {
-          task,
-          completed: false,
-        }
-      );
-      console.log("Added:", res.data);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/todos`, {
+        task,
+        completed: false,
+      });
       setTodos((prev) => [...prev, res.data]);
       setTask("");
     } catch (err) {
@@ -46,7 +42,7 @@ export const App = () => {
   const handleDelete = async (id) => {
     try {
       const res = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/todos/${id}`
+        `${import.meta.env.VITE_API_URL}/todos/${id}`
       );
       setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
     } catch (err) {
@@ -61,7 +57,7 @@ export const App = () => {
     try {
       const updated = { ...task, completed: !task.completed };
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/todos/${task.id}`,
+        `${import.meta.env.VITE_API_URL}/todos/${task.id}`,
         updated
       );
       setTodos((prev) => prev.map((t) => (t.id === task.id ? updated : t)));
@@ -76,10 +72,7 @@ export const App = () => {
   const handleUpdateTask = async (id) => {
     try {
       const updated = { task: editText, completed: false };
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/todos/${id}`,
-        updated
-      );
+      await axios.put(`${import.meta.env.VITE_API_URL}/todos/${id}`, updated);
       setTodos((prev) =>
         prev.map((t) => (t.id === id ? { ...t, task: editText } : t))
       );

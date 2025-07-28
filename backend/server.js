@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const db = require("./db");
 const app = express();
 const PORT = process.env.PORT;
@@ -9,9 +11,44 @@ app.use(cors());
 app.use(express.json());
 
 /**
+ * log in
+ */
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  db.query(
+    "SELECT * FROM users WHERE username = ?",
+    [username],
+    (err, results) => {
+      if (err) return res.status(500).json({ message: "Database error" });
+      if (results.length === 0)
+        return res
+          .status(401)
+          .json({ message: "Invalid username or password" });
+
+      const found = results[0];
+
+      if (!bcrypt.compareSync(password, found.password)) {
+        return res
+          .status(401)
+          .json({ message: "Invalid username or password" });
+      }
+
+      const token = jwt.sign(
+        { id: found.id, username: found.username },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      res.json({ token, user: { id: found.id, username: found.username } });
+    }
+  );
+});
+
+/**
  * Get
  */
-app.get("/api/todos", (req, res) => {
+app.get("/todos", (req, res) => {
   db.query("SELECT * FROM todos", (err, results) => {
     if (err) return res.status(500).json({ error: err });
     res.json(results);
@@ -21,7 +58,7 @@ app.get("/api/todos", (req, res) => {
 /**
  * Post
  */
-app.post("/api/todos", (req, res) => {
+app.post("/todos", (req, res) => {
   const { task, completed } = req.body;
 
   if (!task || typeof completed === "undefined") {
@@ -49,7 +86,7 @@ app.post("/api/todos", (req, res) => {
 /**
  * Delete
  */
-app.delete("/api/todos/:id", (req, res) => {
+app.delete("/todos/:id", (req, res) => {
   const id = req.params.id;
   db.query("DELETE FROM todos WHERE id = ?", [id], (err, result) => {
     if (err) return res.status(500).json({ error: err });
@@ -60,7 +97,7 @@ app.delete("/api/todos/:id", (req, res) => {
 /**
  * Put
  */
-app.put("/api/todos/:id", (req, res) => {
+app.put("/todos/:id", (req, res) => {
   const id = req.params.id;
   const { task, completed } = req.body;
   if (typeof task === "undefined" || typeof completed === "undefined") {
