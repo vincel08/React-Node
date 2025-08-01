@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIdleTimer } from "react-idle-timer";
 
 export const useAuth = () => {
   const [user, setUser] = useState(() => {
@@ -21,6 +22,17 @@ export const useAuth = () => {
     localStorage.removeItem("user");
     setUser(null);
   };
+
+  useIdleTimer({
+    timeout: 10 * 60 * 1000,
+    onIdle: () => {
+      if (user) {
+        alert("You've been logged out due to inactivity.");
+        logout();
+      }
+    },
+    debounce: 500,
+  });
 
   return { user, login, logout };
 };

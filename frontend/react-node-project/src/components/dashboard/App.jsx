@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import {
+  getTodos,
+  addTodo,
+  deleteTodo,
+  updateTodo,
+} from "../../services/todoService";
+import { LogoutButton } from "..";
 
 export const App = () => {
   const [todos, setTodos] = useState([]);
@@ -11,8 +17,7 @@ export const App = () => {
    * get data
    */
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/todos`)
+    getTodos()
       .then((res) => {
         setTodos(res.data);
       })
@@ -22,13 +27,10 @@ export const App = () => {
   /**
    * handle submit
    */
-  const hanldleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/todos`, {
-        task,
-        completed: false,
-      });
+      const res = await addTodo(task);
       setTodos((prev) => [...prev, res.data]);
       setTask("");
     } catch (err) {
@@ -41,9 +43,7 @@ export const App = () => {
    */
   const handleDelete = async (id) => {
     try {
-      const res = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/todos/${id}`
-      );
+      const res = await deleteTodo(id);
       setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
     } catch (err) {
       console.log("Error deleting task:", err);
@@ -56,10 +56,7 @@ export const App = () => {
   const toggleComplete = async (task) => {
     try {
       const updated = { ...task, completed: !task.completed };
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/todos/${task.id}`,
-        updated
-      );
+      await updateTodo(task.id, updated);
       setTodos((prev) => prev.map((t) => (t.id === task.id ? updated : t)));
     } catch (err) {
       console.log("Update failed:", err);
@@ -72,7 +69,7 @@ export const App = () => {
   const handleUpdateTask = async (id) => {
     try {
       const updated = { task: editText, completed: false };
-      await axios.put(`${import.meta.env.VITE_API_URL}/todos/${id}`, updated);
+      await updateTodo(id, updated);
       setTodos((prev) =>
         prev.map((t) => (t.id === id ? { ...t, task: editText } : t))
       );
@@ -87,12 +84,13 @@ export const App = () => {
     <>
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
+          <LogoutButton />
           <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
             Todo List
           </h1>
 
           <form
-            onSubmit={hanldleSubmit}
+            onSubmit={handleSubmit}
             className="flex items-center gap-2 mb-6"
           >
             <input

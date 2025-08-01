@@ -1,44 +1,34 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { signIn } from "../services/signinService";
-import { SignupButton } from "../components";
+import { signUp } from "../services/signupService";
 
-export const SignIn = () => {
+export const Signup = () => {
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth();
   const navigate = useNavigate();
-  const { user: authUser } = useAuth();
 
-  /**
-   * handle submit
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await signIn(user, password);
-      if (res.status === 200) {
-        login(res.data);
-        navigate("/todos");
+      const res = await signUp(user, password);
+      if (res.status === 201) {
+        alert("Account created successfully!");
+        navigate("/login");
       }
     } catch (err) {
-      alert("Login Failed");
+      console.error("Signup Failed:", err);
+      alert("Signup Failed");
     }
   };
-
-  useEffect(() => {
-    if (authUser) navigate("/todos");
-  }, [authUser]);
 
   return (
     <>
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="w-full max-w-sm p-8 bg-white rounded-xl shadow-md">
           <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
-            Log In
+            Sign Up
           </h1>
-          <form className="space-y-4 bottom-2" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <input
                 type="text"
@@ -63,9 +53,17 @@ export const SignIn = () => {
               type="submit"
               className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
-              Log In
+              Sign Up
             </button>
-            <SignupButton />
+            <div className="flex justify-between items-center">
+              <h1 className="text-gray-700">Already have an account?</h1>
+              <h1
+                onClick={() => navigate("/login")}
+                className="cursor-pointer text-red-600 font-semibold hover:underline hover:text-red-700 transition duration-200"
+              >
+                Log In
+              </h1>
+            </div>
           </form>
         </div>
       </div>

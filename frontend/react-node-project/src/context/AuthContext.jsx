@@ -1,19 +1,21 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useIdleTimer } from "react-idle-timer";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch (e) {
-        setUser(null);
-      }
+    try {
+      setUser(stored ? JSON.parse(stored) : null);
+    } catch {
+      localStorage.removeItem("user");
     }
+
+    setIsLoading(false);
   }, []);
 
   const login = (data) => {
@@ -28,7 +30,22 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  return <AuthContext value={{ user, login, logout }}>{children}</AuthContext>;
+  useIdleTimer({
+    timeout: 10 * 60 * 1000,
+    onIdle: () => {
+      if (user) {
+        alert("You've been logged out due to inactivity.");
+        logout();
+      }
+    },
+    debounce: 500,
+  });
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);

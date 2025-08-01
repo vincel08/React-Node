@@ -16,6 +16,7 @@
     "esbuild": "^0.25.8",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-idle-timer": "^5.7.2",
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
